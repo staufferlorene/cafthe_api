@@ -115,27 +115,7 @@ router.get("/commande/client/:id", (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-/*
-    * Route : Modification des informations client sauf mdp
-    * PUT /api/client/update/info/id_client
-    * Exemple : JSON
-    * {
-    * "Telephone_client": "0000000000",
-    * "Mail_client": "test.maj@email.com",
-    * "Adresse_client": "rue de la maj 41200 Romo"
-    * }
- */
-
+// Route : Afficher tous les clients
 
 router.get("/client", (request, response) => {
     db.query('select * from client', (error, result) => {
@@ -146,6 +126,9 @@ router.get("/client", (request, response) => {
         }
     })
 })
+
+
+// Route : Afficher un client grâce à son ID
 
 router.get("/client/:id", (request, response) => {
     const id = request.params.id
@@ -159,7 +142,17 @@ router.get("/client/:id", (request, response) => {
     })
 })
 
-router.put("/client/:id", (request, response) => {
+/*
+    * Route : Modification des informations client sauf mdp
+    * PUT /api/client/update/id_client
+    * Exemple : JSON
+    * {
+    * "Telephone_client": "0000000000",
+    * "Mail_client": "test.maj@email.com",
+    * "Adresse_client": "rue de la maj 41200 Romo"
+    * }
+ */
+router.put("/client/update/:id", (request, response) => {
     const id = request.params.id
     const { Telephone_client, Mail_client, Adresse_client } = request.body
 
@@ -167,18 +160,50 @@ router.put("/client/:id", (request, response) => {
         if (error) {
             console.log(error)
         } else {
-            response.json('value insert')
+            response.json('Modification effectuée')
         }
     } )
 })
 
+/*
+    * Route : Modification du mdp client
+    * PUT /api/client/update/mdp/id_client
+    * Exemple : JSON
+    * {
+    * "Mdp_client": "Password1"
+    * }
+ */
 
+router.put("/client/update/mdp/:id", (request, response) => {
+    const id = request.params.id
+    const {last_mdp, new_mdp} = request.body
 
+    //Sélectionner le mdp du client en bdd
+    db.query("SELECT Mdp_client FROM client WHERE Id_client = ?", [id], (error, result) => {
+        if (error) return response.status(500).json('Erreur serveur')
 
+        // Comparer les mdp
+        bcrypt.compare(last_mdp, result[0].Mdp_client, (err,isMatch) => {
+            if (err) return response.status(500).json({message:'Erreur serveur'});
+            if (!isMatch) return response.status(401).json({message:'Pas les mêmes mdp'});
 
+            // Crypter le new mdp
+            bcrypt.hash(new_mdp, 10, (error, result) => {
+                if (error) {
+                    return response.status(500).json('Hachage a foiré')
+                }
 
-
-
+                // Màj le mdp
+                db.query("UPDATE client SET Mdp_client = ? WHERE Id_client = ?", [result, id], (error, result) => {
+                    if (error) {
+                        return response.status(500).json('Mdp non màj')
+                    }
+                    response.status(200).json('Mdp màj')
+                })
+            })
+        })
+    });
+});
 
 
 
