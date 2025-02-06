@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(cors());
 
 // Utilisation des routes
-// app.use("/api", routes);
+app.use("/api", routes);
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 3000;
@@ -16,3 +16,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`L'API CafThé est démarré sur http://localhost:${PORT}`);
 });
+
