@@ -19,7 +19,7 @@ router.get("/produit", (req, res) => {
 /*
     * Route : Récupérer un produit par son ID
     * GET /api/produit/:id
-    * Exemple : GET /api/produits/3
+    * Exemple : GET /api/produit/3
  */
 router.get("/produit/:id", (req, res) => {
     const { id } = req.params; //const id = req.params.id (la ligne commenté équivaut à la ligne non commenté)
@@ -42,15 +42,17 @@ router.get("/produit/:id", (req, res) => {
     * POST /api/client/register
     * Exemple : JSON
     * {
-    * "nom": "Dupont",
-    * "prenom": "Jean"
-    * "email": "jean.dupont@email.com"
-    * "mot de passe": "monMotDePasse"
+    * "Nom_client": "Doe",
+    * "Prenom_client": "John",
+    * "Telephone_client": "0612345678",
+    * "Mail_client": "john.doe@email.com",
+    * "Mdp_client": "password",
+    * "Date_inscription": "2025-02-03",
+    * "Adresse_client": "rue du test 75000 Paris"
     * }
  */
 router.post("/client/register", (req, res) => {
- //const { nom, prenom, email, mot_de_passe } = req.body; // /!\/!\/!\ à reprendre avec les éléments de ma base de données sur la ligne en dessous!!
-    const { Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client } = req.body; // /!\/!\/!\ à reprendre avec les éléments de ma base de données !!
+    const { Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client } = req.body;
     // Contrôler si le mail est déjà présent dans la base de donnée
     db.query("SELECT * FROM client WHERE Mail_client = ?", [Mail_client], (err, result) => {
         if(err) {
@@ -90,6 +92,29 @@ router.post("/client/register", (req, res) => {
            );
    });
 });
+
+/*
+    * Route : Afficher l'historique des commandes
+    * GET /api/produit/:id
+    * Exemple : GET /api/commande/2
+ */
+router.get("/commande/client/:id", (req, res) => {
+    const { id } = req.params; //const id = req.params.id (la ligne commenté équivaut à la ligne non commenté)
+
+    db.query("SELECT * FROM commande WHERE Id_client = ?", [id], (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        }
+
+        if(result.length === 0) {
+            return res.status(404).json({message: "Produit non trouvé"});
+        }
+        res.json(result);
+    });
+});
+
+
+
 
 
 module.exports = router;
