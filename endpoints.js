@@ -5,14 +5,15 @@ const router = express.Router();
 
 /*
     * Route : Lister les produits
-    * GET /api/produits
+    * GET /api/produit
  */
 router.get("/produit", (req, res) => {
     db.query("SELECT * FROM produit", (err, result) => {
       if(err) {
           return res.status(500).json({message: "Erreur du serveur"});
+      } else {
+          res.json(result);
       }
-      res.json(result);
     });
 });
 
@@ -82,7 +83,7 @@ router.post("/client/register", (req, res) => {
                if (err) {
                    return res
                        .status(500)
-                       .json({message: "Erreur lors du hachage du mdp"});
+                       .json({message: "Erreur lors de l'inscription"});
                }
 
                res
@@ -95,8 +96,8 @@ router.post("/client/register", (req, res) => {
 
 /*
     * Route : Afficher l'historique des commandes
-    * GET /api/produit/:id
-    * Exemple : GET /api/commande/2
+    * GET /api/commande/client/:id_client
+    * Exemple : GET /api/commande/client/2
  */
 router.get("/commande/client/:id", (req, res) => {
     const { id } = req.params; //const id = req.params.id (la ligne commenté équivaut à la ligne non commenté)
@@ -112,6 +113,74 @@ router.get("/commande/client/:id", (req, res) => {
         res.json(result);
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    * Route : Modification des informations client sauf mdp
+    * PUT /api/client/update/info/id_client
+    * Exemple : JSON
+    * {
+    * "Telephone_client": "0000000000",
+    * "Mail_client": "test.maj@email.com",
+    * "Adresse_client": "rue de la maj 41200 Romo"
+    * }
+ */
+
+
+router.get("/client", (request, response) => {
+    db.query('select * from client', (error, result) => {
+        if (error) {
+            console.log(error)
+        } else {
+            response.json(result)
+        }
+    })
+})
+
+router.get("/client/:id", (request, response) => {
+    const id = request.params.id
+
+    db.query('select * from client where Id_client = ?', id, (error, result) => {
+        if (error) {
+            console.log(error)
+        } else {
+            response.json(result)
+        }
+    })
+})
+
+router.put("/client/:id", (request, response) => {
+    const id = request.params.id
+    const { Telephone_client, Mail_client, Adresse_client } = request.body
+
+    db.query("UPDATE client SET Telephone_client = ?, Mail_client = ?, Adresse_client = ? WHERE Id_client = ?", [Telephone_client, Mail_client, Adresse_client, id], (error, result) => {
+        if (error) {
+            console.log(error)
+        } else {
+            response.json('value insert')
+        }
+    } )
+})
+
+
+
+
+
+
+
+
+
+
 
 
 
