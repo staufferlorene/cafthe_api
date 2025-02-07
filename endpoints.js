@@ -114,6 +114,43 @@ router.get("/commande/client/:id", (req, res) => {
     });
 });
 
+/*
+    * Route : Afficher le détail d'une commande
+    * GET /api/commande/detail/:id_client
+    * Exemple : GET /api/commande/client/2
+ */
+router.get("/commande/detail/:id", (req, res) => {
+    const { id } = req.params;
+
+    db.query("SELECT * FROM ligne_commande WHERE Id_commande = ?", [id], (err, result) => {
+            if(err) {
+                return res.status(500).json({message: "Erreur du serveur"});
+            }
+
+            if(result.length === 0) {
+                return res.status(404).json({message: "Produit non trouvé"});
+            }
+
+            res.json(result);
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Route : Afficher tous les clients
 
@@ -204,6 +241,7 @@ router.put("/client/update/mdp/:id", (request, response) => {
         })
     });
 });
+
 
 
 
