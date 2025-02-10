@@ -37,6 +37,47 @@ router.get("/produit/:id", (req, res) => {
     });
 });
 
+/*
+    * Route : Afficher les produits de catégorie café
+    * GET /categorie/cafe
+ */
+router.get("/categorie/cafe", (req, res) => {
+    db.query("SELECT * FROM produit WHERE Id_categorie = 2", (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        } else {
+            res.json(result);
+        }
+    });
+});
+
+/*
+    * Route : Afficher les produits de catégorie thé
+    * GET /categorie/the
+ */
+router.get("/categorie/the", (req, res) => {
+    db.query("SELECT * FROM produit WHERE Id_categorie = 1", (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        } else {
+            res.json(result);
+        }
+    });
+});
+
+/*
+    * Route : Afficher les produits de catégorie accessoire
+    * GET /categorie/the
+ */
+router.get("/categorie/accessoire", (req, res) => {
+    db.query("SELECT * FROM produit WHERE Id_categorie = 3", (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        } else {
+            res.json(result);
+        }
+    });
+});
 
 /*
     * Route : Inscription d'un client
@@ -135,23 +176,6 @@ router.get("/commande/detail/:id", (req, res) => {
         });
     });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Route : Afficher tous les clients
 
 router.get("/client", (request, response) => {
@@ -241,11 +265,6 @@ router.put("/client/update/mdp/:id", (request, response) => {
         })
     });
 });
-
-
-
-
-
 
 
 
