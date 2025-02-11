@@ -1,6 +1,7 @@
 const express = require("express");
-const db= require("./db");
 const bcrypt = require("bcrypt");
+const db= require("./db");
+const { verifyToken } = require("./middleware")
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const {sign} = require("jsonwebtoken");
@@ -108,7 +109,7 @@ router.post("/login", (req, res) => {
     * Route : Lister les produits
     * GET /api/produit
  */
-router.get("/produit", (req, res) => {
+router.get("/produit", verifyToken, (req, res) => {
     db.query("SELECT * FROM produit", (err, result) => {
       if(err) {
           return res.status(500).json({message: "Erreur du serveur"});
