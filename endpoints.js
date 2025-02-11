@@ -2,6 +2,107 @@ const express = require("express");
 const db= require("./db");
 const bcrypt = require("bcrypt");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+const {sign} = require("jsonwebtoken");
+require("dotenv").config(); // Permet de charger les variables d'environnement
+
+/*
+    * Route : Inscription d'un client
+    * POST /api/client/register
+    * Exemple : JSON
+    * {
+    * "Nom_client": "Doe",
+    * "Prenom_client": "John",
+    * "Telephone_client": "0612345678",
+    * "Mail_client": "john.doe@email.com",
+    * "Mdp_client": "password",
+    * "Date_inscription": "2025-02-03",
+    * "Adresse_client": "rue du test 75000 Paris"
+    * }
+ */
+router.post("/client/register", (req, res) => {
+    const { Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client } = req.body;
+    // Contrôler si le mail est déjà présent dans la base de donnée
+    db.query("SELECT * FROM client WHERE Mail_client = ?", [Mail_client], (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        }
+
+        if(result.length > 0) {
+            return res
+                .status(400)
+                .json({message: "Cette adresse mail est déjà utilisé"});
+        }
+    });
+
+    // Hachage du mdp
+    bcrypt.hash(	Mdp_client, 10, (err, hash) => {
+        if(err) {
+            return res
+                .status(500)
+                .json({message: "Erreur lors du hachage du mdp"});
+        }
+
+        // Insertion du nouveau client
+        db.query(
+            "INSERT INTO client (Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client) VALUES (?,?,?,?,?,?,?)",
+            [Nom_client, Prenom_client, Telephone_client, Mail_client, hash, Date_inscription, Adresse_client],
+            (err, result) => {
+                if (err) {
+                    return res
+                        .status(500)
+                        .json({message: "Erreur lors de l'inscription"});
+                }
+
+                res
+                    .status(201)
+                    .json({message: "Inscription réussie", client_id: result.insertId});
+            },
+        );
+    });
+});
+
+/*
+    * Route : Connexion d'un client (Génération de JWT)
+    * {
+    * "Mail_client": "john.doe55@email.com",
+    * "Mdp_client": "password"
+ */
+router.post("/login", (req, res) => {
+    const {Mail_client, Mdp_client} = req.body;
+
+    db.query("SELECT * FROM client WHERE Mail_client = ?", [Mail_client], (err, result) => {
+        if(err) return res.status(500).json({ message: "Erreur du serveur"});
+        if(result.length === 0) {return res.status(401).json({ message: "Identifiant incorrect"});
+        }
+
+        const client = result[0];
+
+        // Vérification du mdp
+        bcrypt.compare(Mdp_client, client.Mdp_client, (err, isMatch) => {
+            if(err) return res.status(500).json({ message: "Erreur du serveur"});
+            if(!isMatch) return res.status(401).json({ message : "Mot de passe incorrect"});
+
+        // Génération d'un token JWT
+            const token = sign(
+                {id: client.Id_client, Mail_client: client.Mail_client},
+                process.env.JWT_SECRET,
+                {expiresIn: process.env.JWT_EXPIRES_IN},
+            );
+
+            res.json({
+                message: "Connexion réussie",
+                token,
+                client: {
+                    id: client.Id_client,
+                    nom: client.Nom_client,
+                    prenom: client.Prenom_client,
+                    email: client.Mail_client,
+                },
+            });
+        });
+    });
+});
 
 /*
     * Route : Lister les produits
@@ -67,7 +168,7 @@ router.get("/categorie/the", (req, res) => {
 
 /*
     * Route : Afficher les produits de catégorie accessoire
-    * GET /categorie/the
+    * GET /categorie/accessoire
  */
 router.get("/categorie/accessoire", (req, res) => {
     db.query("SELECT * FROM produit WHERE Id_categorie = 3", (err, result) => {
@@ -77,62 +178,6 @@ router.get("/categorie/accessoire", (req, res) => {
             res.json(result);
         }
     });
-});
-
-/*
-    * Route : Inscription d'un client
-    * POST /api/client/register
-    * Exemple : JSON
-    * {
-    * "Nom_client": "Doe",
-    * "Prenom_client": "John",
-    * "Telephone_client": "0612345678",
-    * "Mail_client": "john.doe@email.com",
-    * "Mdp_client": "password",
-    * "Date_inscription": "2025-02-03",
-    * "Adresse_client": "rue du test 75000 Paris"
-    * }
- */
-router.post("/client/register", (req, res) => {
-    const { Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client } = req.body;
-    // Contrôler si le mail est déjà présent dans la base de donnée
-    db.query("SELECT * FROM client WHERE Mail_client = ?", [Mail_client], (err, result) => {
-        if(err) {
-            return res.status(500).json({message: "Erreur du serveur"});
-        }
-
-        if(result.length > 0) {
-            return res
-                .status(400)
-                .json({message: "Cette adresse mail est déjà utilisé"});
-        }
-});
-
-   // Hachage du mdp
-   bcrypt.hash(	Mdp_client, 10, (err, hash) => {
-       if(err) {
-           return res
-               .status(500)
-               .json({message: "Erreur lors du hachage du mdp"});
-       }
-
-       // Insertion du nouveau client
-       db.query(
-           "INSERT INTO client (Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client) VALUES (?,?,?,?,?,?,?)",
-           [Nom_client, Prenom_client, Telephone_client, Mail_client, hash, Date_inscription, Adresse_client],
-           (err, result) => {
-               if (err) {
-                   return res
-                       .status(500)
-                       .json({message: "Erreur lors de l'inscription"});
-               }
-
-               res
-                   .status(201)
-                   .json({message: "Inscription réussie", client_id: result.insertId});
-           },
-           );
-   });
 });
 
 /*
@@ -231,7 +276,8 @@ router.put("/client/update/:id", (request, response) => {
     * PUT /api/client/update/mdp/id_client
     * Exemple : JSON
     * {
-    * "Mdp_client": "Password1"
+    * "last_mdp": "password",
+    * "new_mdp": "Password1"
     * }
  */
 
@@ -245,7 +291,7 @@ router.put("/client/update/mdp/:id", (request, response) => {
 
         // Comparer les mdp
         bcrypt.compare(last_mdp, result[0].Mdp_client, (err,isMatch) => {
-            if (err) return response.status(500).json({message:'Erreur serveur'});
+            if (err) return response.status(500).json({message:'Erreur test serveur'});
             if (!isMatch) return response.status(401).json({message:'Pas les mêmes mdp'});
 
             // Crypter le new mdp

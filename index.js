@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const db= require("./db"); // Connexion à MySQL
 const routes = require("./endpoints"); //Les routes de l'API
+require("dotenv").config(); // Permet de charger les variables d'environnement
 
 const app = express();
 app.use(express.json());
