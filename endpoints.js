@@ -68,6 +68,7 @@ router.post("/client/register", (req, res) => {
     * {
     * "Mail_client": "john.doe55@email.com",
     * "Mdp_client": "password"
+    * }
  */
 router.post("/login", (req, res) => {
     const {Mail_client, Mdp_client} = req.body;
@@ -109,7 +110,7 @@ router.post("/login", (req, res) => {
     * Route : Lister les produits
     * GET /api/produit
  */
-router.get("/produit", verifyToken, (req, res) => {
+router.get("/produit", (req, res) => {
     db.query("SELECT * FROM produit", (err, result) => {
       if(err) {
           return res.status(500).json({message: "Erreur du serveur"});
