@@ -107,16 +107,16 @@ router.post("/login", (req, res) => {
 });
 
 /*
-    * Route : Lister les produits
-    * GET /api/produit
+    * Route : Afficher les produits et récupérer la TVA
+    * GET /montantttc/produit
  */
-router.get("/produit", (req, res) => {
-    db.query("SELECT * FROM produit", (err, result) => {
-      if(err) {
-          return res.status(500).json({message: "Erreur du serveur"});
-      } else {
-          res.json(result);
-      }
+router.get("/montantttc/produit", (req, res) => {
+    db.query("SELECT * FROM produit JOIN categorie ON categorie.Id_categorie = produit.Id_categorie", (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        } else {
+            res.json(result);
+        }
     });
 });
 
@@ -128,7 +128,7 @@ router.get("/produit", (req, res) => {
 router.get("/produit/:id", (req, res) => {
     const { id } = req.params; //const id = req.params.id (la ligne commenté équivaut à la ligne non commenté)
 
-    db.query("SELECT * FROM produit WHERE Id_produit = ?", [id], (err, result) => {
+    db.query("SELECT * FROM produit JOIN categorie ON categorie.Id_categorie = produit.Id_categorie WHERE Id_produit = ?", [id], (err, result) => {
         if(err) {
             return res.status(500).json({message: "Erreur du serveur"});
         }
@@ -145,7 +145,7 @@ router.get("/produit/:id", (req, res) => {
     * GET /categorie/cafe
  */
 router.get("/categorie/cafe", (req, res) => {
-    db.query("SELECT * FROM produit WHERE Id_categorie = 2", (err, result) => {
+    db.query("SELECT * FROM produit JOIN categorie ON categorie.Id_categorie = produit.Id_categorie WHERE produit.Id_categorie = 2", (err, result) => {
         if(err) {
             return res.status(500).json({message: "Erreur du serveur"});
         } else {
@@ -159,7 +159,7 @@ router.get("/categorie/cafe", (req, res) => {
     * GET /categorie/the
  */
 router.get("/categorie/the", (req, res) => {
-    db.query("SELECT * FROM produit WHERE Id_categorie = 1", (err, result) => {
+    db.query("SELECT * FROM produit JOIN categorie ON categorie.Id_categorie = produit.Id_categorie WHERE produit.Id_categorie = 1", (err, result) => {
         if(err) {
             return res.status(500).json({message: "Erreur du serveur"});
         } else {
@@ -173,7 +173,7 @@ router.get("/categorie/the", (req, res) => {
     * GET /categorie/accessoire
  */
 router.get("/categorie/accessoire", (req, res) => {
-    db.query("SELECT * FROM produit WHERE Id_categorie = 3", (err, result) => {
+    db.query("SELECT * FROM produit JOIN categorie ON categorie.Id_categorie = produit.Id_categorie WHERE produit.Id_categorie = 3", (err, result) => {
         if(err) {
             return res.status(500).json({message: "Erreur du serveur"});
         } else {
@@ -182,7 +182,7 @@ router.get("/categorie/accessoire", (req, res) => {
     });
 });
 
-/*
+ /*
     * Route : Afficher l'historique des commandes
     * GET /api/commande/client/:id_client
     * Exemple : GET /api/commande/client/2
