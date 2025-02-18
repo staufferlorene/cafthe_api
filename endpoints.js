@@ -246,7 +246,7 @@ router.get("/client/:id", (request, response) => {
         if (error) {
             console.log(error)
         } else {
-            response.json(result)
+            response.json(result[0])
         }
     })
 })
@@ -256,33 +256,33 @@ router.get("/client/:id", (request, response) => {
     * PUT /api/client/update/id_client
     * Exemple : JSON
     * {
-    * "Telephone_client": "0000000000",
     * "Mail_client": "test.maj@email.com",
     * "Adresse_client": "rue de la maj 41200 Romo"
     * }
  */
+
 router.put("/client/update/:id", (request, response) => {
     const id = request.params.id
-    const { Telephone_client, Mail_client, Adresse_client } = request.body
+    const {Telephone_client, Mail_client, Adresse_client} = request.body
 
-    db.query("UPDATE client SET Telephone_client = ?, Mail_client = ?, Adresse_client = ? WHERE Id_client = ?", [Telephone_client, Mail_client, Adresse_client, id], (error, result) => {
-        if (error) {
-            console.log(error)
-        } else {
-            response.json('Modification effectuée')
-        }
-    } )
-})
+            db.query("UPDATE client SET Telephone_client = ?, Mail_client = ?, Adresse_client = ? WHERE Id_client = ?", [Telephone_client, Mail_client, Adresse_client, id], (error, result) => {
+            if (error) {
+                console.log(error)
+            } else {
+                response.json('Modification effectuée')
+            }
+        } )
+    })
 
-/*
-    * Route : Modification du mdp client
-    * PUT /api/client/update/mdp/id_client
-    * Exemple : JSON
-    * {
-    * "last_mdp": "password",
-    * "new_mdp": "Password1"
-    * }
- */
+   /*
+       * Route : Modification du mdp client
+       * PUT /api/client/update/mdp/id_client
+       * Exemple : JSON
+       * {
+       * "last_mdp": "password",
+       * "new_mdp": "Password1"
+       * }
+    */
 
 router.put("/client/update/mdp/:id", (request, response) => {
     const id = request.params.id
@@ -294,21 +294,21 @@ router.put("/client/update/mdp/:id", (request, response) => {
 
         // Comparer les mdp
         bcrypt.compare(last_mdp, result[0].Mdp_client, (err,isMatch) => {
-            if (err) return response.status(500).json({message:'Erreur test serveur'});
-            if (!isMatch) return response.status(401).json({message:'Pas les mêmes mdp'});
+            if (err) return response.status(500).json({message:'Erreur serveur'});
+            if (!isMatch) return response.status(401).json({message:'Mot de passe différents'});
 
             // Crypter le new mdp
             bcrypt.hash(new_mdp, 10, (error, result) => {
                 if (error) {
-                    return response.status(500).json('Hachage a foiré')
+                    return response.status(500).json('Le cryptage a échoué')
                 }
 
                 // Màj le mdp
                 db.query("UPDATE client SET Mdp_client = ? WHERE Id_client = ?", [result, id], (error, result) => {
                     if (error) {
-                        return response.status(500).json('Mdp non màj')
+                        return response.status(500).json('Erreur lors de la mise à jour du mot de passe')
                     }
-                    response.status(200).json('Mdp màj')
+                    response.status(200).json('Mot de passe mis à jour')
                 })
             })
         })
