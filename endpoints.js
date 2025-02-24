@@ -211,7 +211,7 @@ router.get("/commande/client/:id", (req, res) => {
 router.get("/commande/detail/:id", (req, res) => {
     const { id } = req.params;
 
-    db.query("SELECT * FROM ligne_commande WHERE Id_commande = ?", [id], (err, result) => {
+    db.query("SELECT * FROM produit as p JOIN ligne_commande as l ON p.Id_produit = l.Id_produit JOIN commande as c ON l.Id_commande = c.Id_commande WHERE l.Id_commande = ?", [id], (err, result) => {
             if(err) {
                 return res.status(500).json({message: "Erreur du serveur"});
             }
