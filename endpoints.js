@@ -7,6 +7,9 @@ const jwt = require("jsonwebtoken");
 const {sign} = require("jsonwebtoken");
 require("dotenv").config(); // Permet de charger les variables d'environnement
 
+// npm install --save-dev jest ==> pour test unitaire
+// npm install --supertest ==> pour test
+
 /*
     * Route : Inscription d'un client
     * POST /api/client/register
@@ -206,12 +209,12 @@ router.get("/commande/client/:id", (req, res) => {
 /*
     * Route : Afficher le détail d'une commande
     * GET /api/commande/detail/:id_client
-    * Exemple : GET /api/commande/client/2
+    * Exemple : GET /api/commande/detail/2
  */
 router.get("/commande/detail/:id", (req, res) => {
     const { id } = req.params;
 
-    db.query("SELECT * FROM produit as p JOIN ligne_commande as l ON p.Id_produit = l.Id_produit JOIN commande as c ON l.Id_commande = c.Id_commande WHERE l.Id_commande = ?", [id], (err, result) => {
+    db.query ("SELECT * FROM produit as p JOIN ligne_commande as l ON p.Id_produit = l.Id_produit JOIN commande as c ON l.Id_commande = c.Id_commande WHERE l.Id_commande = ?", [id], (err, result) => {
             if(err) {
                 return res.status(500).json({message: "Erreur du serveur"});
             }
@@ -314,6 +317,53 @@ router.put("/client/update/mdp/:id", (request, response) => {
         })
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    * Route : Enregistrement de la commande du client
+    * POST /api/order/register
+ */
+
+
+
+//
+//
+// router.post("/order/register", (req, res) => {
+//     const { Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client } = req.body;
+//             // Insertion du nouveau client
+//         db.query(
+//             "INSERT INTO client (Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client) VALUES (?,?,?,?,?,?,?)",
+//             [Nom_client, Prenom_client, Telephone_client, Mail_client, hash, Date_inscription, Adresse_client],
+//             (err, result) => {
+//                 if (err) {
+//                     return res
+//                         .status(500)
+//                         .json({message: "Erreur lors de l'enregistrement de la commande"});
+//                 }
+//
+//                 res
+//                     .status(201)
+//                     .json({message: "Commande réussie"});
+//             },
+//         );
+// });
+//
+//
+// INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC)
+
+
 
 
 
