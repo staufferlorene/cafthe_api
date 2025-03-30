@@ -111,10 +111,10 @@ router.post("/login", (req, res) => {
 });
 
 /*
-    * Route : Afficher les produits et récupérer la TVA
-    * GET /montantttc/produit
+    * Route : Afficher tous les produits
+    * GET /produit
  */
-router.get("/montantttc/produit", (req, res) => {
+router.get("/produit", (req, res) => {
     db.query("SELECT * FROM produit JOIN categorie ON categorie.Id_categorie = produit.Id_categorie", (err, result) => {
         if(err) {
             return res.status(500).json({message: "Erreur du serveur"});
@@ -145,7 +145,7 @@ router.get("/produit/:id", (req, res) => {
 });
 
 /*
-    * Route : Afficher les produits de catégorie café
+    * Route : Afficher les produits de la catégorie café
     * GET /categorie/cafe
  */
 router.get("/categorie/cafe", (req, res) => {
@@ -159,7 +159,7 @@ router.get("/categorie/cafe", (req, res) => {
 });
 
 /*
-    * Route : Afficher les produits de catégorie thé
+    * Route : Afficher les produits de la catégorie thé
     * GET /categorie/the
  */
 router.get("/categorie/the", (req, res) => {
@@ -173,7 +173,7 @@ router.get("/categorie/the", (req, res) => {
 });
 
 /*
-    * Route : Afficher les produits de catégorie accessoire
+    * Route : Afficher les produits de la catégorie accessoire
     * GET /categorie/accessoire
  */
 router.get("/categorie/accessoire", (req, res) => {
@@ -186,15 +186,45 @@ router.get("/categorie/accessoire", (req, res) => {
     });
 });
 
+
+/*
+    * Route : Afficher la sélection de produit
+    * GET /selection
+ */
+router.get("/selection", (req, res) => {
+    db.query("SELECT * FROM produit WHERE Prix_TTC < 13 AND (Id_categorie = 1 OR Id_categorie = 2) ORDER BY Id_categorie ASC", (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        } else {
+            res.json(result);
+        }
+    });
+});
+
+/*
+    * Route : Afficher les coffrets découvertes
+    * GET /coffret
+ */
+router.get("/coffret", (req, res) => {
+    db.query("SELECT * FROM produit WHERE Nom_produit LIKE '%Coffret%'", (err, result) => {
+        if(err) {
+            return res.status(500).json({message: "Erreur du serveur"});
+        } else {
+            res.json(result);
+        }
+    });
+});
+
+
  /*
     * Route : Afficher l'historique des commandes
     * GET /api/commande/client/:id_client
     * Exemple : GET /api/commande/client/2
  */
-router.get("/commande/client/:id", (req, res) => {
+router.get("/commande/client/:id", verifyToken, (req, res) => {
     const { id } = req.params; //const id = req.params.id (la ligne commenté équivaut à la ligne non commenté)
 
-    db.query("SELECT * FROM commande WHERE Id_client = ?", [id], (err, result) => {
+    db.query("SELECT * FROM commande WHERE Id_client = ? ORDER BY Date_commande DESC", [id], (err, result) => {
         if(err) {
             return res.status(500).json({message: "Erreur du serveur"});
         }
@@ -211,7 +241,7 @@ router.get("/commande/client/:id", (req, res) => {
     * GET /api/commande/detail/:id_client
     * Exemple : GET /api/commande/detail/2
  */
-router.get("/commande/detail/:id", (req, res) => {
+router.get("/commande/detail/:id", verifyToken, (req, res) => {
     const { id } = req.params;
 
     db.query ("SELECT * FROM produit as p JOIN ligne_commande as l ON p.Id_produit = l.Id_produit JOIN commande as c ON l.Id_commande = c.Id_commande WHERE l.Id_commande = ?", [id], (err, result) => {
@@ -242,7 +272,7 @@ router.get("/client", (request, response) => {
 
 // Route : Afficher un client grâce à son ID
 
-router.get("/client/:id", (request, response) => {
+router.get("/client/:id", verifyToken, (request, response) => {
     const id = request.params.id
 
     db.query('select * from client where Id_client = ?', id, (error, result) => {
@@ -264,7 +294,7 @@ router.get("/client/:id", (request, response) => {
     * }
  */
 
-router.put("/client/update/:id", (request, response) => {
+router.put("/client/update/:id", verifyToken, (request, response) => {
     const id = request.params.id
     const {Telephone_client, Mail_client, Adresse_client} = request.body
 
@@ -287,7 +317,7 @@ router.put("/client/update/:id", (request, response) => {
        * }
     */
 
-router.put("/client/update/mdp/:id", (request, response) => {
+router.put("/client/update/mdp/:id", verifyToken, (request, response) => {
     const id = request.params.id
     const {last_mdp, new_mdp} = request.body
 
@@ -336,35 +366,38 @@ router.put("/client/update/mdp/:id", (request, response) => {
     * POST /api/order/register
  */
 
+router.post("/order/register", (req, res) => {
+    const { Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client, commandeId, Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande } = req.body;
 
+    // Insertion de la nouvelle commande dans la table commande
+    db.query(
+        "INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC) VALUES (?,?,?,?,?,?)",
+        [Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC],
+        (err, result) => {
+            if (err) {
+                return res.status(500).json({message: "Erreur lors de l'enregistrement de la commande"});
+            }
 
-//
-//
-// router.post("/order/register", (req, res) => {
-//     const { Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client } = req.body;
-//             // Insertion du nouveau client
-//         db.query(
-//             "INSERT INTO client (Nom_client, Prenom_client, Telephone_client, Mail_client, Mdp_client, Date_inscription, Adresse_client) VALUES (?,?,?,?,?,?,?)",
-//             [Nom_client, Prenom_client, Telephone_client, Mail_client, hash, Date_inscription, Adresse_client],
-//             (err, result) => {
-//                 if (err) {
-//                     return res
-//                         .status(500)
-//                         .json({message: "Erreur lors de l'enregistrement de la commande"});
-//                 }
-//
-//                 res
-//                     .status(201)
-//                     .json({message: "Commande réussie"});
-//             },
-//         );
-// });
-//
-//
-// INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC)
+            // Récupération de l'id auto incrémenté pour le mettre en clé primaire de ligne_commande
+            const idCommande = result.idCommande;
 
+            // Boucler sur la requête pour enregistrer TOUTES les lignes
+            const valuesLigneCommande =  ligne_commande.map(ligne => [idCommande, Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande]);
 
+            // Insertion des lignes de commande
+            db.query(
+                "INSERT INTO ligne_commande (Id_ligne_commande, Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande) VALUES (?,?,?,?)",
+                [valuesLigneCommande],
+                (err, result) => {
+                    if (err) {
+                        return res.status(500).json({message: "Erreur lors de l'enregistrement des lignes de commande"});
+                    }
 
-
+                    res.status(201).json({message: "Commande réussie"});
+                }
+            );
+        }
+    );
+});
 
 module.exports = router;
