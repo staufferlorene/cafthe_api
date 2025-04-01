@@ -272,7 +272,7 @@ router.get("/client", (request, response) => {
 
 // Route : Afficher un client grâce à son ID
 
-router.get("/client/:id", verifyToken, (request, response) => {
+router.get("/client/:id", verifyToken,  (request, response) => {
     const id = request.params.id
 
     db.query('select * from client where Id_client = ?', id, (error, result) => {
@@ -348,54 +348,41 @@ router.put("/client/update/mdp/:id", verifyToken, (request, response) => {
     });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
     * Route : Enregistrement de la commande du client
     * POST /api/order/register
  */
 
 router.post("/order/register", (req, res) => {
-    const { Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client, commandeId, Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande } = req.body;
+    const { Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client, ligne_commande } = req.body;
 
     // Insertion de la nouvelle commande dans la table commande
     db.query(
-        "INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC) VALUES (?,?,?,?,?,?)",
-        [Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC],
+        "INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client) VALUES (?,?,?,?,?,?,?,?)",
+        [Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client],
         (err, result) => {
             if (err) {
                 return res.status(500).json({message: "Erreur lors de l'enregistrement de la commande"});
             }
 
-            // Récupération de l'id auto incrémenté pour le mettre en clé primaire de ligne_commande
-            const idCommande = result.idCommande;
+            // Récupérer l'id de la commande auto incrémenté
+            const idCommande = result.insertId;
 
             // Boucler sur la requête pour enregistrer TOUTES les lignes
-            const valuesLigneCommande =  ligne_commande.map(ligne => [idCommande, Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande]);
+            ligne_commande.map(x => {
+                const {Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, Id_commande, Id_produit} = x
 
-            // Insertion des lignes de commande
-            db.query(
-                "INSERT INTO ligne_commande (Id_ligne_commande, Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande) VALUES (?,?,?,?)",
-                [valuesLigneCommande],
-                (err, result) => {
-                    if (err) {
-                        return res.status(500).json({message: "Erreur lors de l'enregistrement des lignes de commande"});
-                    }
-
-                    res.status(201).json({message: "Commande réussie"});
-                }
-            );
+                db.query(
+                    "INSERT INTO ligne_commande (Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, Id_commande, Id_produit) VALUES (?,?,?,?,?)",
+                    [Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, idCommyande, Id_produit],
+                    (err, result) => {
+                                if (err) {
+                                    console.log(`Erreur lors de l'enregistrement des lignes de commande : ${err}`);
+                                }
+                            }
+                );
+            })
+            res.status(201).json({message: "Enregistrement commande réussie"});
         }
     );
 });
