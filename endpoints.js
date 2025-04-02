@@ -354,14 +354,16 @@ router.put("/client/update/mdp/:id", verifyToken, (request, response) => {
  */
 
 router.post("/order/register", (req, res) => {
-    const { Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client, ligne_commande } = req.body;
+    const { Statut_commande, Adresse_livraison, Id_vendeur, Id_client, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, ligne_commande } = req.body;
 
     // Insertion de la nouvelle commande dans la table commande
+
     db.query(
-        "INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client) VALUES (?,?,?,?,?,?,?,?)",
-        [Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client],
+        "INSERT INTO commande (Date_commande, Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client) VALUES (NOW(),?,?,?,?,?,?,?)",
+        [Statut_commande, Adresse_livraison, Montant_commande_HT, Montant_TVA, Montant_commande_TTC, Id_vendeur, Id_client],
         (err, result) => {
             if (err) {
+                console.error(err)
                 return res.status(500).json({message: "Erreur lors de l'enregistrement de la commande"});
             }
 
@@ -369,17 +371,17 @@ router.post("/order/register", (req, res) => {
             const idCommande = result.insertId;
 
             // Boucler sur la requête pour enregistrer TOUTES les lignes
-            ligne_commande.map(x => {
-                const {Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, Id_commande, Id_produit} = x
+            ligne_commande.cart.forEach((x, index) => {
+                const {Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, Id_commande, Id_produit} = x
 
                 db.query(
                     "INSERT INTO ligne_commande (Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, Id_commande, Id_produit) VALUES (?,?,?,?,?)",
-                    [Nombre_ligne_commande, Quantite_produit_ligne_commande, Prix_unitaire_ligne_commande, idCommyande, Id_produit],
+                    [++index, x.quantity, x.amount_TTC, idCommande, x.id],
                     (err, result) => {
-                                if (err) {
-                                    console.log(`Erreur lors de l'enregistrement des lignes de commande : ${err}`);
-                                }
-                            }
+                        if (err) {
+                            console.log(`Erreur lors de l'enregistrement des lignes de commande : ${err}`);
+                        }
+                    }
                 );
             })
             res.status(201).json({message: "Enregistrement commande réussie"});
