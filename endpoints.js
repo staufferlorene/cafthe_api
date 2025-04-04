@@ -367,6 +367,7 @@ router.post("/order/register", (req, res) => {
                 return res.status(500).json({message: "Erreur lors de l'enregistrement de la commande"});
             }
 
+
             // Récupérer l'id de la commande auto incrémenté
             const idCommande = result.insertId;
 
